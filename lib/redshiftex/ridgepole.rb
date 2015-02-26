@@ -62,8 +62,8 @@ module Redshiftex
       sql_array = []
       sqls.split(';').each do |sql|
         if sql =~ /^CREATE TABLE/
-          lines = sql.lines
-          distkey = sql.lines[2].split(' ').first
+          lines = sql.strip.lines
+          distkey = sql.strip.lines[2].split(' ').first
           sort_keys = lines.map{ |line|
             sort_key = nil
             if line =~ /timestamp,/
