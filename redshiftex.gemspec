@@ -5,12 +5,12 @@ require File.expand_path('../lib/redshiftex/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.name          = "redshiftex"
   gem.version       = Redshiftex::VERSION
-  gem.summary       = %q{TODO: Summary}
-  gem.description   = %q{TODO: Description}
+  gem.summary       = %q{redshift utility}
+  gem.description   = %q{redshift utility}
   gem.license       = "MIT"
   gem.authors       = ["Hiroshi Toyama"]
   gem.email         = "toyama0919@gmail.com"
-  gem.homepage      = "https://github.com/toyama0919/redshiftex"
+  gem.homepage      = "https://github.com/ipros-team/redshiftex"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
@@ -18,6 +18,8 @@ Gem::Specification.new do |gem|
   gem.require_paths = ['lib']
 
   gem.add_dependency 'thor', '~> 0.19.1'
+  gem.add_dependency 'activerecord'
+  gem.add_dependency 'ridgepole', '~> 0.5.2'
 
   gem.add_development_dependency 'bundler', '~> 1.7.2'
   gem.add_development_dependency 'pry', '~> 0.10.1'

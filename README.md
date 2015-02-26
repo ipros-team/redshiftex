@@ -2,11 +2,14 @@
 
 TODO: Summary
 
-TODO: Description
+## Examples(copy)
 
-## Examples
+    $ redshiftex copy -c config/database.yml -E development_redshift --copy_option "DATEFORMAT 'YYYY-MM-DD' TIMEFORMAT 'YYYY-MM-DD HH:MI:SS' json 'auto' GZIP TRUNCATECOLUMNS maxerror 100" --path "s3://${bucket_name}/pageview." --table pageview
+    #=> hoge
 
-    $ redshiftex sample
+## Examples(diff)
+
+    $ redshiftex ridgepole diff -c config/database.yml -E stg --schemafile Schemafile
     #=> hoge
 
 ## Installation
