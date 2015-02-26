@@ -13,7 +13,7 @@ module Redshiftex
       super(args, options, config)
       @class_options = config[:shell].base.options
       @core = Core.new
-      @cmd = "ridgepole --diff #{@class_options['config']} #{@class_options['schemafile']}"
+      @cmd = "bundle exec ridgepole --diff #{@class_options['config']} #{@class_options['schemafile']}"
       @cmd = @cmd + " -E #{@class_options['environment']}" if @class_options['environment']
       @yaml = @core.connection(@class_options['config'], @class_options['environment'])
       @logger = @core.logger
@@ -65,8 +65,14 @@ module Redshiftex
           lines = sql.lines
           distkey = sql.lines[2].split(' ').first
           sort_keys = lines.map{ |line|
-            line.gsub('timestamp,', '').strip if line =~ /timestamp,/
-            line.gsub('date,', '').strip  if line =~ /date,/
+            sort_key = nil
+            if line =~ /timestamp,/
+              sort_key = line.gsub('timestamp,', '').strip
+            end
+            if line =~ /date,/
+              sort_key = line.gsub('date,', '').strip
+            end
+            sort_key
           }.compact
           sql = sql.gsub(/\)$/, ",\nPRIMARY KEY(id)\n)")
           sql += "\ndistkey(#{distkey})" if distkey
