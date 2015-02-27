@@ -2,6 +2,7 @@ require "thor"
 require 'open-uri'
 require 'erb'
 require 'active_record'
+require 'json'
 
 module Redshiftex
   class CLI < Thor
@@ -60,9 +61,8 @@ module Redshiftex
         timeout(3) {
           role = open('http://169.254.169.254/latest/meta-data/iam/security-credentials/').read
           body = open('http://169.254.169.254/latest/meta-data/iam/security-credentials/' + role).read
-          result = JSON.parse(body)
+          return JSON.parse(body)
         }
-        return result
       rescue TimeoutError => e
       rescue Exception => e
       end
