@@ -58,7 +58,7 @@ module Redshiftex
     def get_iam_metadata
       begin
         result = {}
-        timeout(3) {
+        timeout(10) {
           role = open('http://169.254.169.254/latest/meta-data/iam/security-credentials/').read
           body = open('http://169.254.169.254/latest/meta-data/iam/security-credentials/' + role).read
           return JSON.parse(body)
