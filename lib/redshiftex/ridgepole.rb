@@ -1,6 +1,8 @@
 require "thor"
 require 'yaml'
 require 'active_record'
+require 'ridgepole'
+require 'ridgepole/cli/config'
 
 module Redshiftex
   class Ridgepole < Thor
@@ -13,74 +15,70 @@ module Redshiftex
       super(args, options, config)
       @class_options = config[:shell].base.options
       @core = Core.new
-      @cmd = "bundle exec ridgepole --diff #{@class_options['config']} #{@class_options['schemafile']}"
-      @cmd = @cmd + " -E #{@class_options['environment']}" if @class_options['environment']
       @yaml = @core.connection(@class_options['config'], @class_options['environment'])
       @logger = @core.logger
     end
 
     desc "apply", "apply"
     def apply
-      ridgepole_diff(false)
+      get_sql_diff.each do |sql|
+        @logger.info(sql)
+        ActiveRecord::Base.connection.execute(sql)
+      end
     end
 
     desc "diff", "diff"
     def diff
-      ridgepole_diff(true)
+      get_sql_diff.each do |sql|
+        @logger.info(sql)
+      end
     end
 
     private
 
-    def ridgepole_diff(dryrun)
-      diff = cleansing(`#{@cmd}`)
-      ActiveRecord::Base.establish_connection(@yaml)
-      diff.each do |sql|
-        @logger.info("-------------------------------------")
-        @logger.info(sql)
-        ActiveRecord::Base.connection.execute(sql) unless dryrun
-        @logger.info("-------------------------------------")
-        @logger.info("")
-      end
+    def get_delta
+      ::Ridgepole::Client.diff(
+        ::Ridgepole::Config.load(@class_options['config'], @class_options['environment']),
+        File.open(@class_options['schemafile']), {}
+      )
     end
 
-    def cleansing(output)
-      sqls = ""
-      output.lines do |line|
-        next unless line =~ /^#/
-        line = line.gsub(/^# /, '')
-        line = line.gsub(/"/, '')
-        line = line.strip
-        line = line.gsub('serial primary key', 'BIGINT IDENTITY(1,1)' )
-        line = line.gsub(/(character varying\(([\d]+)\))/, '\1 encode lzo' )
-        line = (line =~ /^ALTER/ ? line + ';' : line)
-        line = (line =~ /^DROP/ ? line + ';' : line)
-        line = (line =~ /\)$/ ? line + ';' : line)
-        sqls += line + "\n"
-      end
+    def get_sql_diff
+      delta = get_delta
+      migrated, sql = delta.migrate(:noop => true)
+      sqls = sql.lines.map{ |line| line.strip }
+      cleansing(sqls)
+    end
 
+    def cleansing(sqls)
       timestamp_keys = []
       sql_array = []
-      sqls.split(';').each do |sql|
+      sqls.each do |sql|
+        sql = sql.gsub("serial primary key", "BIGINT")
+        sql = sql.gsub(/(character varying\(([\d]+)\))/, '\1 encode lzo' )
         if sql =~ /^CREATE TABLE/
-          lines = sql.strip.lines
-          distkey = sql.strip.lines[2].split(' ').first
-          sort_keys = lines.map{ |line|
+          r = / \((.*)\)/
+          columns = sql.scan(r).first.first.split(',')
+
+          distkey = columns[1].split(' ').first
+          sort_keys = columns.map{ |column|
+            column = column.strip
             sort_key = nil
-            if line =~ /timestamp,/
-              sort_key = line.gsub('timestamp,', '').strip
+            if column =~ / timestamp$/
+              sort_key = column.split(' ').first
             end
-            if line =~ /date,/
-              sort_key = line.gsub('date,', '').strip
+            if column =~ / date$/
+              sort_key = column.split(' ').first
             end
             sort_key
           }.compact
-          sql = sql.gsub(/\)$/, ",\nPRIMARY KEY(id)\n)")
-          sql += "\ndistkey(#{distkey})" if distkey
-          sql += "\nsortkey(#{sort_keys.first})" unless sort_keys.empty?
+          sql = sql.gsub(/\)$/, ", PRIMARY KEY(id))")
+          sql += " distkey(#{distkey})" if distkey
+          sql += " sortkey(#{sort_keys.first})" unless sort_keys.empty?
         elsif sql =~ /^ALTER TABLE/
           next if sql =~ / ALTER /
         end
-        sql = sql.strip
+        sql = sql + ';'
         sql_array << sql unless sql.empty?
       end
       sql_array
