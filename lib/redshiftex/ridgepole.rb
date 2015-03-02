@@ -54,7 +54,6 @@ module Redshiftex
       timestamp_keys = []
       sql_array = []
       sqls.each do |sql|
-        sql = sql.gsub("serial primary key", "BIGINT")
         sql = sql.gsub(/(character varying\(([\d]+)\))/, '\1 encode lzo' )
         if sql =~ /^CREATE TABLE/
           r = / \((.*)\)/
@@ -73,6 +72,7 @@ module Redshiftex
             sort_key
           }.compact
           sql = sql.gsub(/\)$/, ", PRIMARY KEY(id))")
+          sql = sql.gsub("serial primary key", "BIGINT IDENTITY(1,1)")
           sql += " distkey(#{distkey})" if distkey
           sql += " sortkey(#{sort_keys.first})" unless sort_keys.empty?
         elsif sql =~ /^ALTER TABLE/
