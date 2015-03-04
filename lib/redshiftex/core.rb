@@ -4,6 +4,8 @@ require 'logger'
 module Redshiftex
   class Core
 
+    SECURITY_CREDENTIALS_URL = 'http://169.254.169.254/latest/meta-data/iam/security-credentials/'
+
     def initialize
     end
 
@@ -35,8 +37,8 @@ module Redshiftex
       begin
         result = {}
         timeout(10) {
-          role = open('http://169.254.169.254/latest/meta-data/iam/security-credentials/').read
-          body = open('http://169.254.169.254/latest/meta-data/iam/security-credentials/' + role).read
+          role = open(SECURITY_CREDENTIALS_URL).read
+          body = open(SECURITY_CREDENTIALS_URL + role).read
           return JSON.parse(body)
         }
       rescue TimeoutError => e
