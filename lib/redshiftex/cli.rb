@@ -7,10 +7,10 @@ require 'json'
 module Redshiftex
   class CLI < Thor
     register(Ridgepole, 'ridgepole', 'ridgepole [COMMAND]', 'subcommad for ridgepole')
-    class_option :config, aliases: '-c',type: :string, desc: 'default is first data'
-    class_option :environment, aliases: '-E', type: :string, default: nil, desc: 'default is first data'
+    class_option :config, aliases: '-c',type: :string, desc: 'database.yml'
+    class_option :environment, aliases: '-E', type: :string, default: nil, desc: 'environment'
     class_option :schemafile, type: :string, default: 'Schemafile', desc: 'schemafile'
-    class_option :dryrun, type: :boolean, default: false, desc: 'default is first data'
+    class_option :dryrun, type: :boolean, default: false, desc: 'dryrun'
     def initialize(args = [], options = {}, config = {})
       super(args, options, config)
       @class_options = config[:shell].base.options
