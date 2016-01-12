@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency 'thor', '~> 0.19.1'
   gem.add_dependency 'activerecord'
-  gem.add_dependency 'ridgepole', '~> 0.5.2'
+  gem.add_dependency 'ridgepole'
 
   gem.add_development_dependency 'bundler', '~> 1.7.2'
   gem.add_development_dependency 'pry', '~> 0.10.1'
