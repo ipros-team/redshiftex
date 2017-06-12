@@ -21,9 +21,9 @@ module Redshiftex
     end
 
     desc 'copy', 'copy'
-    option :copy_option, type: :string, required: true, desc: 'header'
-    option :path, type: :string, required: true, desc: 'header'
-    option :tables, type: :array, required: true, desc: 'header'
+    option :copy_option, type: :string, required: true, desc: 'copy option'
+    option :path, type: :string, required: true, desc: 'path'
+    option :tables, type: :array, required: true, desc: 'tables'
     def copy
       options['tables'].each do |table|
         copy_proc(options['path'], options['copy_option'], table)
@@ -31,9 +31,9 @@ module Redshiftex
     end
 
     desc 'copy_all', 'copy_all'
-    option :copy_option, type: :string, required: true, desc: 'header'
-    option :path, type: :string, required: true, desc: 'header'
-    option :excludes, type: :array, default: [],desc: 'header'
+    option :copy_option, type: :string, required: true, desc: 'copy option'
+    option :path, type: :string, required: true, desc: 'path'
+    option :excludes, type: :array, default: [],desc: 'excludes'
     def copy_all
       tables = ActiveRecord::Base.connection.tables
       tables = tables - options['excludes']
