@@ -1,5 +1,6 @@
 require 'yaml'
 require 'logger'
+require 'timeout'
 
 module Redshiftex
   class Core
@@ -36,12 +37,12 @@ module Redshiftex
     def iam_metadata
       begin
         result = {}
-        timeout(10) {
+        Timeout.timeout(10) {
           role = open(SECURITY_CREDENTIALS_URL).read
           body = open(SECURITY_CREDENTIALS_URL + role).read
           return JSON.parse(body)
         }
-      rescue TimeoutError => e
+      rescue Timeout::Error => e
       rescue Exception => e
       end
       return result
