@@ -15,7 +15,7 @@ module Redshiftex
       super(args, options, config)
       @class_options = config[:shell].base.options
       @core = Core.new
-      @yaml = @core.connection(@class_options['config'], @class_options['environment'])
+      @yaml = @core.connection(@class_options[:config], @class_options[:environment])
       @logger = @core.logger
       ActiveRecord::Base.establish_connection(@yaml)
     end
@@ -25,8 +25,8 @@ module Redshiftex
     option :path, type: :string, required: true, desc: 'path'
     option :tables, type: :array, required: true, desc: 'tables'
     def copy
-      options['tables'].each do |table|
-        copy_proc(options['path'], options['copy_option'], table)
+      options[:tables].each do |table|
+        copy_proc(options[:path], options[:copy_option], table)
       end
     end
 
@@ -36,9 +36,9 @@ module Redshiftex
     option :excludes, type: :array, default: [],desc: 'excludes'
     def copy_all
       tables = ActiveRecord::Base.connection.tables
-      tables = tables - options['excludes']
+      tables = tables - options[:excludes]
       tables.each do |table|
-        copy_proc(options['path'], options['copy_option'], table)
+        copy_proc(options[:path], options[:copy_option], table)
       end
     end
 
@@ -53,7 +53,7 @@ module Redshiftex
       sql = ERB.new(File.read(template_path)).result(binding)
       @logger.info(sql)
       begin
-        ActiveRecord::Base.connection.execute(sql) unless @class_options['dryrun']
+        ActiveRecord::Base.connection.execute(sql) unless @class_options[:dryrun]
       rescue Exception => e
         @logger.error("\n#{e.message}\n#{e.backtrace.join("\n")}")
       end
