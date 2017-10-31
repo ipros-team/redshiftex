@@ -55,7 +55,12 @@ module Redshiftex
       begin
         ActiveRecord::Base.connection.execute(sql) unless @class_options[:dryrun]
       rescue Exception => e
-        @logger.error("\n#{e.message}\n#{e.backtrace.join("\n")}")
+        if e.message =~ /The specified S3 prefix .* does not exist/
+          @logger.warn("s3 object not exist => #{@path}")
+        else
+          @logger.error("\n#{e.message}\n#{e.backtrace.join("\n")}")
+          raise
+        end
       end
     end
   end
