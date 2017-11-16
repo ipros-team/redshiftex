@@ -33,16 +33,31 @@ module Redshiftex
     desc 'copy_all', 'copy_all'
     option :copy_option, type: :string, required: true, desc: 'copy option'
     option :path, type: :string, required: true, desc: 'path'
-    option :excludes, type: :array, default: [],desc: 'excludes'
+    option :excludes, type: :array, default: [],desc: 'excludes tables. can use regexp.'
     def copy_all
       tables = ActiveRecord::Base.connection.tables
-      tables = tables - options[:excludes]
+      regexps = options[:excludes].map{ |exclude| Regexp.new(exclude) }
+      excludes = get_excludes(tables, regexps)
+      @logger.info("exlude tables => #{excludes.join(',')}") unless excludes.empty?
+      tables = tables - excludes
       tables.each do |table|
         copy_proc(options[:path], options[:copy_option], table)
       end
     end
 
     private
+    def get_excludes(tables, regexps)
+      tables.select do |table|
+        compare(table, regexps)
+      end
+    end
+
+    def compare(table, regexps)
+      regexps.each do |regexp|
+        return true if regexp.match(table)
+      end
+      return false
+    end
 
     def copy_proc(path, copy_option, table)
       @credential = @core.credential
