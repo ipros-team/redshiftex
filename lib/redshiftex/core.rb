@@ -1,6 +1,6 @@
 require 'yaml'
 require 'logger'
-require 'timeout'
+require 'timeout' unless defined?(Timeout)
 
 module Redshiftex
   class Core
@@ -11,7 +11,7 @@ module Redshiftex
     end
 
     def connection(path, environment)
-      @yaml = YAML.load(ERB.new(File.read(path)).result)    
+      @yaml = YAML.load(ERB.new(File.read(path)).result)
       @yaml = @yaml[environment] if environment
       @yaml
     end
