@@ -1,11 +1,11 @@
 require 'yaml'
 require 'logger'
 require 'timeout' unless defined?(Timeout)
+require 'uri'
 
 module Redshiftex
   class Core
-
-    SECURITY_CREDENTIALS_URL = 'http://169.254.169.254/latest/meta-data/iam/security-credentials/'
+    SECURITY_CREDENTIALS_URL = "http://169.254.170.2#{ENV['AWS_CONTAINER_CREDENTIALS_RELATIVE_URI']}"
 
     def initialize
     end
@@ -38,9 +38,8 @@ module Redshiftex
       begin
         result = {}
         Timeout.timeout(10) {
-          role = open(SECURITY_CREDENTIALS_URL).read
-          body = open(SECURITY_CREDENTIALS_URL + role).read
-          return JSON.parse(body)
+          role = URI.open(SECURITY_CREDENTIALS_URL).read
+          return JSON.parse(role)
         }
       rescue Timeout::Error => e
       rescue Exception => e

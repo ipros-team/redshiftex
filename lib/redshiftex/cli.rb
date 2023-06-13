@@ -35,7 +35,7 @@ module Redshiftex
     option :path, type: :string, required: true, desc: 'path'
     option :excludes, type: :array, default: [],desc: 'excludes tables. can use regexp.'
     def copy_all
-      tables = ActiveRecord::Base.connection.tables.map(&:chop)
+      tables = ActiveRecord::Base.connection.tables
       regexps = options[:excludes].map{ |exclude| Regexp.new(exclude) }
       excludes = get_excludes(tables, regexps)
       @logger.info("exlude tables => #{excludes.join(',')}") unless excludes.empty?
