@@ -35,7 +35,7 @@ module Redshiftex
     option :path, type: :string, required: true, desc: 'path'
     option :excludes, type: :array, default: [],desc: 'excludes tables. can use regexp.'
     def copy_all
-      tables = ActiveRecord::Base.connection.tables.map(&:chop)
+      tables = ActiveRecord::Base.connection.tables
       regexps = options[:excludes].map{ |exclude| Regexp.new(exclude) }
       excludes = get_excludes(tables, regexps)
       @logger.info("exlude tables => #{excludes.join(',')}") unless excludes.empty?
@@ -66,7 +66,11 @@ module Redshiftex
       @copy_option = copy_option
       template_path = File.expand_path('../../../template/copy.sql.erb', __FILE__)
       sql = ERB.new(File.read(template_path)).result(binding)
-      @logger.info(sql)
+
+      # credentialの情報を確認したい場合は@credentialで確認できる
+      @logger.info "COPY #{@table}"
+      @logger.info "FROM #{@path}"
+      @logger.info "COPY_OPTION #{@copy_option}"
       begin
         ActiveRecord::Base.connection.execute(sql) unless @class_options[:dryrun]
       rescue Exception => e
